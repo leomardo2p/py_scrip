@@ -181,6 +181,10 @@ async def handle_new_message(event):
         elif(mesage== "/borrar_clientes"):
             controladora.borrar_datos()
             await event.reply("Borrando lista de clientes....")
+            
+        elif(mesage== "/guardar"):
+            controladora.guardar_datos()
+            await event.reply("Guardando datos...")
    
          
 with client:
