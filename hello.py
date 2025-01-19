@@ -37,16 +37,21 @@ async def main():
     source_channel_sub = await client.get_entity(PeerChannel(canal_sub))
     source_channel_anime = await client.get_entity(PeerChannel(canal_anime))
 
-  #  Obtener la entidad del canal destino
+   #  Obtener la entidad del canal destino
     destination_channel = await client.get_entity(PeerChannel(canal_destino))
 
-  #  Obtener todos los mensajes de los canales
-    channs=[source_channel_show,source_channel_anime,source_channel_pelicula,source_channel_serie,source_channel_sub]
+   #Obtener todos los mensajes de los canales
+    print("Recolectando mensajes")
+    channs=[source_channel_sub,source_channel_anime,source_channel_pelicula,source_channel_serie,source_channel_show]
     mesagers=[]
+    all_mesager=[]
     for ch in channs:
-      for mess in await client.get_messages(ch, limit=None):
+      mesagers=[]
+      async for mess in client.iter_messages(ch):
         if(mess.media):
           mesagers.append(mess)
+      all_mesager.extend(mesagers)
+    print("Se tiene un total de: " , len(all_mesager) , " mensajes")
           
         
     
@@ -73,13 +78,15 @@ async def main():
     
   #   #--------------------------------------------
   #          #Borrar historial de un canal
-  #   await client.delete_messages(destination_channel,[msg.id async for msg in client.iter_messages(destination_channel)])
-  #   print("Historial del canal eliminado")
+    #await client.delete_messages(destination_channel,[msg.id async for msg in client.iter_messages(destination_channel)])
+    #print("Historial del canal eliminado")
   #   #--------------------------------------------
   
   #enviar mensajes
+    
+    print("Enviando mensajes...")
     mess=0
-    for message in reversed(mesagers):
+    for message in reversed(all_mesager):
         if(message.media):
             if (mess == 1000):
                 print("Se ha llegado a 1000 mensajes, esperando 1 hora...")
@@ -88,11 +95,12 @@ async def main():
             text = message.text if message.text else ""
             newtext= text.replace("✅ DISPONIBLE POR VIP (SIN CONSUMO DE MEGAS) Interesados: @LAW_OP", "")
             newtext=newtext.replace("TVAditcos", "")
+            newtext=newtext.replace("@LAW_OP", "")
             print("Nombre del archivo: " , text)
             if isinstance(message.media, MessageMediaPhoto):
-                await client.send_message(destination_channel, file=message.media.photo, message=text)
+                await client.send_message(destination_channel, file=message.media.photo, message=newtext)
             elif isinstance(message.media, MessageMediaDocument):
-                await client.send_message(destination_channel, file=message.media.document, message=text)
+                await client.send_message(destination_channel, file=message.media.document, message=newtext)
             # elif isinstance(message.media, MessageMediaWebPage):
             #     await client.send_message(destination_channel, file=message.media.webpage, message=text)
             elif isinstance(message.media, MessageMediaUnsupported):
