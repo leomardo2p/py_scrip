@@ -2,6 +2,7 @@ import asyncio
 from telethon import TelegramClient # type: ignore
 from telethon import functions
 from telethon.tl.types import *
+import pickle
 
 # Use your own values from my.telegram.org
 api_id = 29068923
@@ -24,6 +25,8 @@ async def main():
     canal_pelicula=-1001931348646
     canal_sub=-1001570987246
     canal_anime=-1001890238805
+    canal_variado=-1001507263093
+    
     
     # print(me.username)
     # print(me.phone)
@@ -36,13 +39,15 @@ async def main():
     source_channel_pelicula = await client.get_entity(PeerChannel(canal_pelicula))
     source_channel_sub = await client.get_entity(PeerChannel(canal_sub))
     source_channel_anime = await client.get_entity(PeerChannel(canal_anime))
+    source_channel_variado = await client.get_entity(PeerChannel(canal_variado))
+    
 
    #  Obtener la entidad del canal destino
     destination_channel = await client.get_entity(PeerChannel(canal_destino))
 
    #Obtener todos los mensajes de los canales
     print("Recolectando mensajes")
-    channs=[source_channel_sub,source_channel_anime,source_channel_pelicula,source_channel_serie,source_channel_show]
+    channs=[source_channel_sub,source_channel_anime,source_channel_pelicula,source_channel_serie,source_channel_show,source_channel_variado]
     mesagers=[]
     all_mesager=[]
     for ch in channs:
@@ -52,7 +57,12 @@ async def main():
           mesagers.append(mess)
       all_mesager.extend(mesagers)
     print("Se tiene un total de: " , len(all_mesager) , " mensajes")
-          
+    # ind=0
+    # fich=open("index.ind","wb")
+    # pickle.dump(ind,fich)
+    # fich.close()
+    # print("cierra")
+    # await asyncio.sleep(10)   
         
     
     #messages = await client.get_messages(source_channel_show, limit=None)
@@ -85,17 +95,24 @@ async def main():
   #enviar mensajes
     
     print("Enviando mensajes...")
-    mess=0
-    for message in reversed(all_mesager):
+    
+    file=open("index.ind","rb")
+    mess=pickle.load(file)
+    file.close()
+    cant_mens=0
+    for message in reversed(all_mesager[mess:]):
         if(message.media):
-            if (mess == 1000):
+            if (cant_mens ==1000):
                 print("Se ha llegado a 1000 mensajes, esperando 1 hora...")
+                cant_mens=0
                 await asyncio.sleep(3600)
-                mess=0
             text = message.text if message.text else ""
-            newtext= text.replace("✅ DISPONIBLE POR VIP (SIN CONSUMO DE MEGAS) Interesados: @LAW_OP", "")
+            newtext= text.replace("✅ DISPONIBLE POR VIP (SIN CONSUMO DE MEGAS)", "")
+            newtext=newtext.replace("Interesados: @LAW_OP","")
             newtext=newtext.replace("TVAditcos", "")
             newtext=newtext.replace("@LAW_OP", "")
+            newtext=newtext.replace("💎:VIP nube: @Itachi_Uchia01","")
+            newtext=newtext.replace("VIP: @Itachi_Uchia01","")
             print("Nombre del archivo: " , text)
             if isinstance(message.media, MessageMediaPhoto):
                 await client.send_message(destination_channel, file=message.media.photo, message=newtext)
@@ -106,8 +123,12 @@ async def main():
             elif isinstance(message.media, MessageMediaUnsupported):
                 print("Mensaje no soportado, no enviado")
             mess=mess+1
+            cant_mens=cant_mens+1
             print("Mensaje enviado numero:", mess )
             print("Esperando 1 segundo...")
+            fil=open("index.ind","wb")
+            pickle.dump(mess,fil)
+            fil.close()
             await asyncio.sleep(1)
                      
     

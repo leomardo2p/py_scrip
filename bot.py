@@ -155,10 +155,11 @@ async def handle_new_message(event):
         elif(mesage== "/ver"):
             lista=controladora.cargar_datos()
             lista=controladora.revisar_limite()
-            if(len(lista) != 0):
-                for user in lista:
+            list_del=controladora.borrados
+            if(len(list_del) != 0):
+                for user in list_del:
                     if isinstance(user, Client):
-                        await event.reply("Cliente: ", user.name , " vencio su suscripcion" )
+                        await event.reply("Cliente: "+ user.name + " vencio su suscripcion" )
                 controladora.guardar_datos()
             else:
                 await event.reply("No hay usuarios con suscripcion vencida")
