@@ -49,21 +49,47 @@ async def main():
    #Obtener todos los mensajes de los canales
     print("Recolectando mensajes")
     channs=[source_channel_sub,source_channel_anime,source_channel_pelicula,source_channel_serie,source_channel_show,source_channel_variado]
-    mesagers=[]
-    all_mesager=[]
-    for ch in channs:
-      mesagers=[]
-      async for mess in client.iter_messages(ch):
+    
+    cant_mens=0
+    num_mens=0
+    for ch in reversed(channs):
+      
+      async for mess in reversed(client.iter_messages(ch)):
+        
         if(mess.media):
-          mesagers.append(mess)
-      all_mesager.extend(mesagers)
-    print("Se tiene un total de: " , len(all_mesager) , " mensajes")
-    ind=0
-    fich=open("index.ind","wb")
-    pickle.dump(ind,fich)
-    fich.close() 
-    print("cierra")
-    #await asyncio.sleep(10)   
+          if (cant_mens ==1000):
+            print("Se ha llegado a 1000 mensajes, esperando 1 hora...")
+            cant_mens=0
+            await asyncio.sleep(3600)
+            continue
+          text = mess.text if mess.text else ""
+          newtext= text.replace("✅ DISPONIBLE POR VIP (SIN CONSUMO DE MEGAS)", "")
+          newtext= newtext.replace("Interesados: @LAW_OP","")
+          newtext= newtext.replace("TVAditcos", "")
+          newtext= newtext.replace("@LAW_OP", "")
+          newtext= newtext.replace("💎:VIP nube: @Itachi_Uchia01","")
+          newtext= newtext.replace("VIP: @Itachi_Uchia01","")
+          newtext= newtext.replace("Vip: @Itachi_Uchia01","")
+          newtext= newtext.replace("Disponible en  (https://t.me/+niDj9adTu31kMmRh)TVadictosPeliculas (https://t.me/+rEH9Hu97eWw5YTYx)","")
+          newtext= newtext.replace("💎VIP nube: @Itachi_Uchia01","")
+          print("Nombre del archivo: " , newtext)
+          if isinstance(mess.media, MessageMediaPhoto):
+            await client.send_message(destination_channel, file=mess.media.photo, message=newtext)
+          elif isinstance(mess.media, MessageMediaDocument):
+            await client.send_message(destination_channel, file=mess.media.document, message=newtext)
+            # elif isinstance(message.media, MessageMediaWebPage):
+            #     await client.send_message(destination_channel, file=message.media.webpage, message=text)
+          elif isinstance(mess.media, MessageMediaUnsupported):
+            print("Mensaje no soportado, no enviado")
+          num_mens=num_mens+1
+          cant_mens=cant_mens+1
+          print("Mensaje enviado numero:", num_mens )
+          print("Esperando 1 segundo...")
+          await asyncio.sleep(1)
+          
+    print("Se tiene un total de: " , num_mens , " mensajes")
+    print("Scrip finalizado")
+    await client.send_message(destination_channel,"Finalizado")
         
     
     #messages = await client.get_messages(source_channel_show, limit=None)
@@ -92,50 +118,6 @@ async def main():
     #await client.delete_messages(destination_channel,[msg.id async for msg in client.iter_messages(destination_channel)])
     #print("Historial del canal eliminado")
   #   #--------------------------------------------
-  
-  #enviar mensajes
-    
-    print("Enviando mensajes...")
-    
-    file= open("index.ind","rb")
-    mess=pickle.load(file)
-    file.close()
-    cant_mens=0
-    for message in reversed(all_mesager[mess:]):
-        if(message.media):
-            if (cant_mens ==1000):
-              print("Se ha llegado a 1000 mensajes, esperando 1 hora...")
-              cant_mens=0
-              fil= open("index.ind","wb")
-              pickle.dump(mess,fil)
-              fil.close()
-              await asyncio.sleep(3600)
-              continue
-            text = message.text if message.text else ""
-            newtext= text.replace("✅ DISPONIBLE POR VIP (SIN CONSUMO DE MEGAS)", "")
-            newtext= newtext.replace("Interesados: @LAW_OP","")
-            newtext= newtext.replace("TVAditcos", "")
-            newtext= newtext.replace("@LAW_OP", "")
-            newtext= newtext.replace("💎:VIP nube: @Itachi_Uchia01","")
-            newtext= newtext.replace("VIP: @Itachi_Uchia01","")
-            print("Nombre del archivo: " , newtext)
-            if isinstance(message.media, MessageMediaPhoto):
-                await client.send_message(destination_channel, file=message.media.photo, message=newtext)
-            elif isinstance(message.media, MessageMediaDocument):
-                await client.send_message(destination_channel, file=message.media.document, message=newtext)
-            # elif isinstance(message.media, MessageMediaWebPage):
-            #     await client.send_message(destination_channel, file=message.media.webpage, message=text)
-            elif isinstance(message.media, MessageMediaUnsupported):
-                print("Mensaje no soportado, no enviado")
-            mess=mess+1
-            cant_mens=cant_mens+1
-            print("Mensaje enviado numero:", mess )
-            print("Esperando 1 segundo...")
-            fil= open("index.ind","wb")
-            pickle.dump(mess,fil)
-            fil.close()
-            await asyncio.sleep(1)
-   
     
 with client:
     client.loop.run_until_complete(main())
